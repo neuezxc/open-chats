@@ -99,17 +99,6 @@ export default function CustomPromptsModal() {
     }
   };
 
-  const handleApply = (prompt) => {
-    // Activate the prompt
-    activatePrompt(prompt);
-    // Don't close the modal - let the user see that the prompt is now active
-  };
-
-  const handleDeactivate = () => {
-    // Deactivate the current prompt
-    deactivatePrompt();
-  };
-
   const insertPlaceholder = (placeholder) => {
     const textarea = document.getElementById("prompt-content");
     const start = textarea.selectionStart;
@@ -193,21 +182,6 @@ export default function CustomPromptsModal() {
                       </div>
                     ) : (
                       <div className="space-y-3 max-h-[50vh] overflow-y-auto">
-                        {activePrompt && (
-                          <div className="mb-4 p-3 bg-green-900/20 border-green-500/40 rounded-[var(--border-radius-sm)]">
-                            <div className="flex justify-between items-center">
-                              <span className="text-green-300 text-sm">
-                                Active: {activePrompt.name}
-                              </span>
-                              <button
-                                onClick={handleDeactivate}
-                                className="px-2 py-1 bg-red-500/20 text-red-300 text-xs rounded hover:bg-red-500/30"
-                              >
-                                Deactivate
-                              </button>
-                            </div>
-                          </div>
-                        )}
                         {prompts.map((prompt) => (
                           <div
                             key={prompt.id}
@@ -229,16 +203,21 @@ export default function CustomPromptsModal() {
                               </div>
                               <div className="flex gap-2 ml-2">
                                 <button
-                                  onClick={() => handleApply(prompt)}
+                                  onClick={() => {
+                                    if (activePrompt && activePrompt.id === prompt.id) {
+                                      deactivatePrompt();
+                                    } else {
+                                      activatePrompt(prompt);
+                                    }
+                                  }}
                                   className={`px-3 py-1 rounded text-white text-sm ${
-                                    activePrompt &&
-                                    activePrompt.id === prompt.id
+                                    activePrompt && activePrompt.id === prompt.id
                                       ? "bg-green-600 hover:bg-green-700"
                                       : "bg-[var(--send-button-bg)] hover:opacity-90"
                                   }`}
                                 >
                                   {activePrompt && activePrompt.id === prompt.id
-                                    ? "Active"
+                                    ? "Deactivate"
                                     : "Activate"}
                                 </button>
                                 <button
@@ -305,6 +284,24 @@ export default function CustomPromptsModal() {
                           </button>
                         </div>
                       </div>
+                      {/* Mode Indicator */}
+                      <div
+                        className={`flex items-center px-3 py-1 rounded-t-[var(--border-radius-sm)] text-xs font-medium ${
+                          showPreview
+                            ? "bg-green-800/20 text-green-300 border border-b-0 border-green-500/50"
+                            : "bg-green-500/20 text-green-300 border border-b-0 border-green-500/50"
+                        }`}
+                      >
+                        {showPreview ? (
+                          <>
+                            <span className="mr-2">Preview Mode</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="mr-2">Edit Mode</span> 
+                          </>
+                        )}
+                      </div>
                       <textarea
                         id="prompt-content"
                         value={showPreview ? previewContent : formData.content}
@@ -321,7 +318,11 @@ export default function CustomPromptsModal() {
                           formErrors.content
                             ? "border-red-500"
                             : "border-[var(--config-button-border)]"
-                        } rounded-[var(--border-radius-sm)] p-3 text-[var(--character-message-color)] min-h-[300px]`}
+                        } rounded-b-[var(--border-radius-sm)] p-3 text-[var(--character-message-color)] min-h-[300px] ${
+                          showPreview
+                            ? "bg-green-400/10 border-green-500/50 cursor-default"
+                            : "bg-[var(--background)] border-[var(--config-button-border)]"
+                        }`}
                         readOnly={showPreview}
                       />
                       {formErrors.content && (

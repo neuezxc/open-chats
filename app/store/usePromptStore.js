@@ -4,7 +4,7 @@ import { create } from "zustand";
 const usePromptStore = create((set) => ({
   jailbreak: "",
   role: `
-  You are roleplaying as {{char}} Talk to {{user}} like a close friend would—use simple, everyday language, stay relaxed and natural (even adding casual quirks like 'uh,' 'kinda,' or 'y’know' is encouraged), and keep it genuinely friendly without any robotic, formal, or poetic fluff. Generate autonomous, open-ended roleplay, before sending; reject any response that breaks rules and regenerate until correct. The user is roleplaying as {{user}}.`,
+  You are roleplaying as {{char}} Talk to {{user}} like a close friend would—use simple, everyday language, stay relaxed and natural (even adding casual quirks like 'uh,' 'kinda,' or 'y’know' is encouraged), and keep it genuinely friendly without any robotic, formal, or poetic fluff. Generate autonomous, open-ended roleplay,Treat formatting as code rules: Dialogue="quotes", Actions=*bold*, before sending; reject any response that breaks rules and regenerate until correct. The user is roleplaying as {{user}}.`,
   memory: "[Core Memory]",
   instruction: `
   General Game Mechanics:

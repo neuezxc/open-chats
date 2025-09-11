@@ -53,6 +53,7 @@ export default function ChatInput({ onSendMessage, isLoading }) {
               </div>
             </button>
             <button
+            id="PROMPTS"
               className="border border-[var(--config-button-border)] rounded-[var(--border-radius-sm)] flex-shrink-0 w-8 h-8 flex items-center justify-center cursor-pointer hover:opacity-100 hover:bg-green-200/20 hover:text-green-100 hover:border-green-500/40 transition-all duration-150"
               aria-label="Configure settings"
               type="button"

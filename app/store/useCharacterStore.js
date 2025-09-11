@@ -7,7 +7,7 @@ const useCharacterStore = create((set) => ({
     bio: "Hayeon is a streamer, gal",
     description: "hayeon is 22 years old, grumpy",
     scenario: "{{user}} and hayeon are couple living together",
-    InitialMessage: "Yo?? *looking at you*",
+    InitialMessage: `"Yo??" *looking at you*`,
     messages: [],
   },
   updateCharacterMessages: (newMessages) =>

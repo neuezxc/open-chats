@@ -1,5 +1,6 @@
 import React from "react";
 import useCharacterStore from "../store/useCharacterStore";
+import { formatMessageContent } from "./TextFormatter";
 
 export default function MessageItem({ message }) {
   const { defaultCharacter } = useCharacterStore();
@@ -28,7 +29,7 @@ export default function MessageItem({ message }) {
             </span>
             {/* Character message content */}
             <span className="text-[var(--character-message-color)] text-base md:text-normal font-normal leading-normal tracking-[-0.4px] whitespace-pre-wrap break-words">
-              {message.content}
+              {formatMessageContent(message.content)}
             </span>
           </div>
         </div>
@@ -44,7 +45,7 @@ export default function MessageItem({ message }) {
         <div className="flex self-end w-full justify-end">
           <div className="bg-[var(--user-bubble-bg)] rounded-[var(--border-radius-md)] w-auto max-w-full md:max-w-[85%] lg:max-w-[75%] p-4">
             <p className="text-[var(--user-message-color)] text-base md:text-normal font-normal leading-normal tracking-[-0.4px] whitespace-pre-wrap break-words">
-              {message.content}
+              {formatMessageContent(message.content)}
             </p>
           </div>
         </div>

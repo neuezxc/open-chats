@@ -10,8 +10,8 @@ export default function MessageList({ messages }) {
   }, [messages]);
 
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl flex-grow py-4 md:py-[45px] overflow-y-auto mx-4 md:mx-8">
-      <div className="flex flex-col flex-grow flex-shrink-0 justify-start items-start gap-0 w-full">
+    <div className="flex flex-col items-center w-full max-w-2xl flex-grow py-4 md:py-[45px] overflow-y-auto px-3">
+      <div className="flex flex-col justify-start items-start gap-3 w-full">
         {/* Map through messages and render based on type */}
         {messages.map((message) => (
           <MessageItem key={message.id} message={message} />

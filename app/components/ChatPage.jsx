@@ -7,12 +7,25 @@ import usePersonStore from "../store/usePersonaStore";
 import useChatStore from "../store/useChatStore";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
+import ApiSettingsModal from "./ApiSettingsModal";
+import useApiSettingsStore from "../store/useApiSettingsStore";
 
 export default function ChatPage() {
   const { defaultPersona } = usePersonStore();
   const { defaultCharacter } = useCharacterStore();
   const { jailbreak, role, memory, instruction } = usePromptStore();
   const { api_key } = useChatStore();
+  const {
+    apiKey,
+    modelId,
+    temperature,
+    maxTokens,
+    contextWindow,
+    repetitionPenalty,
+    frequencyPenalty,
+    presencePenalty,
+    topP
+  } = useApiSettingsStore();
 
   const systemPrompt = () => {
     // Helper function to handle empty/undefined values
@@ -72,15 +85,13 @@ export default function ChatPage() {
       role: "assistant",
       content: defaultCharacter.InitialMessage,
     },
-  ]);
+ ]);
   
   const [isLoading, setIsLoading] = useState(false);
 
   async function sendMessage(userChat) {
     // Validate input
     if (userChat.trim() === "") return;
-
-    // Prevent sending new messages while waiting for a response
     if (isLoading) return;
 
     try {
@@ -98,12 +109,19 @@ export default function ChatPage() {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${api_key}`,
+            Authorization: `Bearer ${apiKey || api_key}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "openrouter/sonoma-dusk-alpha",
+            model: modelId,
             messages: updatedMessages,
+            temperature: temperature,
+            max_tokens: maxTokens,
+            context_window: contextWindow,
+            repetition_penalty: repetitionPenalty,
+            frequency_penalty: frequencyPenalty,
+            presence_penalty: presencePenalty,
+            top_p: topP,
           }),
         }
       );
@@ -146,32 +164,35 @@ export default function ChatPage() {
     }
   }
   return (
-    // Main container with responsive padding and full height
-    <div
-      className="flex flex-col items-center h-screen w-full bg-[var(--chat-background)] p-4 md:p-8"
-      role="main"
-    >
-      {/* Chat Header - Centered character name */}
-      <div className="flex-shrink-0 flex justify-center items-center w-full max-w-4xl h-11 md:h-[45px] py-3">
-        <div className="flex-shrink-0 flex justify-center items-center">
-          <span className="text-[var(--character-name-color)] text-lg md:text-xl font-medium leading-normal tracking-[-0.32px] font-['Alegreya_Sans']">
-            characterName
+    <>
+      {/* Main container with responsive padding and full height */}
+      <div
+        className="relative flex flex-col items-center h-screen w-full bg-[var(--chat-background)] p-4 md:p-8"
+        role="main"
+      >
+        {/* Chat Header - Centered character name */}
+        <div className="flex-shrink-0 flex justify-center items-center w-full max-w-4xl h-5 pb-4 md:h-[20px] p">
+          <div className="flex-shrink-0 flex justify-center items-center">
+            <span className="text-[var(--character-name-color)]  md:text-sm font-medium leading-normal tracking-[-0.32px] ">
+              {defaultCharacter.name}
+            </span>
+          </div>
+        </div>
+
+        {/* Chat Body - Container for messages with responsive padding */}
+        <MessageList messages={messages} />
+
+        {/* Input Area - Chat input with action buttons */}
+        <ChatInput onSendMessage={sendMessage} isLoading={isLoading} />
+
+        {/* Disclaimer - AI notice */}
+        <div className="justify-center items-center mt-2 hidden lg:flex">
+          <span className="text-[var(--disclaimer-color)] text-sm font-normal leading-normal tracking-[-0.24px] ">
+            This is an AI-generated persona, not a real person.
           </span>
         </div>
       </div>
-
-      {/* Chat Body - Container for messages with responsive padding */}
-      <MessageList messages={messages} />
-
-      {/* Input Area - Chat input with action buttons */}
-      <ChatInput onSendMessage={sendMessage} isLoading={isLoading} />
-
-      {/* Disclaimer - AI notice */}
-      <div className="flex justify-center items-center mt-4">
-        <span className="text-[var(--disclaimer-color)] text-sm font-normal leading-normal tracking-[-0.24px] font-['Alegreya_Sans']">
-          This is an AI-generated persona, not a real person.
-        </span>
-      </div>
-    </div>
+      <ApiSettingsModal />
+    </>
   );
 }

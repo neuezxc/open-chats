@@ -1,5 +1,4 @@
-@import "https://fonts.googleapis.com/css?family=Alegreya+Sans:0,500;0,400&display=swap";
-
+@import url('https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400..900;1,400..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -27,7 +26,7 @@
   --spacing-xxl: 531px;
   
   /* Typography */
-  --font-primary: 'Alegreya Sans', 'sans';
+  --font-primary: "Inter", sans-serif;
   --font-size-sm: 12px;
   --font-size-md: 16px;
   --font-size-lg: 20px;
@@ -72,4 +71,10 @@ body {
 textarea{
   outline: none;
   resize: none;
+}
+button{
+  cursor: pointer;
+}
+input:focus{
+  outline: 1px solid var(--send-button-bg);
 }

@@ -1,54 +1,155 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import { ArrowUp, CodeXml, Settings2 } from "lucide-react";
+import usePromptStore from "../store/usePromptStore";
+import useCharacterStore from "../store/useCharacterStore";
+import usePersonStore from "../store/usePersonaStore";
+import useChatStore from "../store/useChatStore";
 
-/**
- * Props interface for the ChatPage component
- * @typedef {Object} ChatPageProps
- * @property {string} [characterName] - Name of the character in the chat
- * @property {Array<Message>} [messages] - Array of message objects
- */
+export default function ChatPage() {
+  const { defaultPersona } = usePersonStore();
+  const { defaultCharacter } = useCharacterStore();
+  const { jailbreak, role, memory, instruction } = usePromptStore();
+  const { api_key } = useChatStore();
 
-/**
- * Message object structure
- * @typedef {Object} Message
- * @property {number} id - Unique identifier for the message
- * @property {'character' | 'user'} type - Type of message sender
- * @property {string} content - Content of the message
- * @property {string} [sender] - Name of the sender (for character messages)
- */
+  const systemPrompt = () => {
+    // Helper function to handle empty/undefined values
+    const getValue = (value, fallback = "") => {
+      return value === undefined || value === null || value.trim() === ""
+        ? fallback
+        : value;
+    };
 
-/**
- * ChatPage Component
- * A responsive chat interface with character and user messages
- *
- * This component implements:
- * - Responsive design using Tailwind CSS utility classes
- * - Flexbox layout for proper alignment and spacing
- * - CSS custom properties for consistent theming
- * - Accessible UI elements with proper ARIA attributes
- * - Reusable and customizable through props
- *
- * @param {ChatPageProps} props - Component props
- * @returns {JSX.Element} ChatPage component
- */
-export default function ChatPage({
-  characterName = "Character Name",
-  messages = [
+    // Helper function to process templates with user/char replacement
+    const processTemplate = (template, fallback = "") => {
+      const processed = getValue(template, fallback);
+      if (processed === fallback) return fallback;
+
+      return processed
+        .replace(/{{user}}/g, defaultPersona.name)
+        .replace(/{{char}}/g, defaultCharacter.name);
+    };
+
+    const replacements = {
+      jailbreak: processTemplate(jailbreak),
+      role: processTemplate(role),
+      char: getValue(defaultCharacter.name, "Character"),
+      character_description: processTemplate(defaultCharacter.description),
+      user: getValue(defaultPersona.name, "User"),
+      user_description: processTemplate(defaultPersona.description),
+      scenario: processTemplate(defaultCharacter.scenario),
+      memory: processTemplate(memory),
+      instruction: processTemplate(instruction),
+    };
+
+    const template = `
+    {{jailbreak}}
+    {{role}}
+    {{character_description}}
+    {{user_description}}
+    [Scenario:{{scenario}}]
+    {{memory}}
+    {{instruction}}
+  `;
+
+    console.log("Processed role:", replacements.role);
+
+    // Final processing with fallback for any unexpected missing values
+    return template
+      .replace(/\{\{(\w+)\}\}/g, (match, key) => {
+        return replacements[key] !== undefined ? replacements[key] : "";
+      })
+      .trim();
+  };
+  const [messages, setMessages] = useState([
     {
-      id: 1,
-      type: "character",
-      content:
-        "Hey there! The usual today? Or are we feeling adventurous and trying something new?",
-      sender: "Character Name",
+      role: "system",
+      content: systemPrompt(),
     },
     {
-      id: 2,
-      type: "user",
-      content:
-        "Hmm, maybe something new. What do you recommend that's not too sweet?",
+      role: "assistant",
+      content: defaultCharacter.InitialMessage,
     },
-  ],
-}) {
+  ]);
+
+  const [userChat, setUserChat] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  useEffect(() => {
+    console.log(messages);
+    console.log(systemPrompt());
+  }, messages);
+
+  async function sendMessage() {
+    // Validate input
+    if (userChat.trim() === "") return;
+
+    // Prevent sending new messages while waiting for a response
+    if (isLoading) return;
+
+    try {
+      // Create new messages array with user message
+      const newUserMessage = { role: "user", content: userChat };
+      const updatedMessages = [...messages, newUserMessage];
+
+      // Update UI immediately with user message
+      setMessages(updatedMessages);
+      setUserChat("");
+      setIsLoading(true);
+
+      // Call API with updated messages including user's message
+      const response = await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${api_key}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "openrouter/sonoma-dusk-alpha",
+            messages: updatedMessages,
+          }),
+        }
+      );
+
+      // Handle HTTP errors
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Validate response structure
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        throw new Error("Invalid API response structure");
+      }
+
+      // Add assistant's response to messages
+      const assistantMessage = {
+        role: "assistant",
+        content: data.choices[0].message.content,
+      };
+
+      setMessages((prevMessages) => [...prevMessages, assistantMessage]);
+      console.log(systemPrompt());
+    } catch (error) {
+      // Handle errors (network issues, API errors, etc.)
+      console.error("Error sending message:", error);
+      // You might want to show an error message to the user here
+      // For example, you could add an error message to the chat
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          role: "assistant",
+          content: "Sorry, I encountered an error. Please try again.",
+        },
+      ]);
+    } finally {
+      // Reset loading state
+      setIsLoading(false);
+    }
+  }
   return (
     // Main container with responsive padding and full height
     <div
@@ -59,7 +160,7 @@ export default function ChatPage({
       <div className="flex-shrink-0 flex justify-center items-center w-full max-w-4xl h-11 md:h-[45px] py-3">
         <div className="flex-shrink-0 flex justify-center items-center">
           <span className="text-[var(--character-name-color)] text-lg md:text-xl font-medium leading-normal tracking-[-0.32px] font-['Alegreya_Sans']">
-            {characterName}
+            characterName
           </span>
         </div>
       </div>
@@ -72,10 +173,10 @@ export default function ChatPage({
             <div
               key={message.id}
               className={`flex w-full ${
-                message.type === "character" ? "mb-4" : "mb-4 md:mb-0"
+                message.role === "assistant" ? "mb-4" : "mb-4 md:mb-0"
               }`}
             >
-              {message.type === "character" ? (
+              {message.role === "assistant" ? (
                 // Character message with avatar and text
                 <div className="flex flex-row flex-grow flex-shrink-0 items-start gap-3 md:gap-[13px] w-full">
                   {/* Character avatar placeholder */}
@@ -119,6 +220,8 @@ export default function ChatPage({
               id=""
               placeholder="Enter to send chat + Enter for linebreak."
               className="w-full"
+              value={userChat}
+              onChange={(e) => setUserChat(e.target.value)}
             ></textarea>
           </div>
 
@@ -151,6 +254,7 @@ export default function ChatPage({
                 className="bg-[var(--send-button-bg)] rounded-[var(--border-radius-sm)] flex-shrink-0 w-8 h-8 flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
                 aria-label="Send message"
                 type="button"
+                onClick={sendMessage}
               >
                 {/* Send icon (upward arrow) */}
                 <ArrowUp size={20} />

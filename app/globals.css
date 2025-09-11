@@ -27,7 +27,7 @@
   --spacing-xxl: 531px;
   
   /* Typography */
-  --font-primary: 'Alegreya Sans', sans-serif;
+  --font-primary: 'Alegreya Sans', 'sans';
   --font-size-sm: 12px;
   --font-size-md: 16px;
   --font-size-lg: 20px;

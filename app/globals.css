@@ -79,3 +79,9 @@ button{
 input:focus{
   outline: 1px solid var(--send-button-bg);
 }
+input[type="range"]{
+  accent-color: green;
+}
+input[type="range"]:focus{
+  outline: none;
+}

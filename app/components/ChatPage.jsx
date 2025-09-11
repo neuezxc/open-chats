@@ -5,16 +5,19 @@ import usePromptStore from "../store/usePromptStore";
 import useCharacterStore from "../store/useCharacterStore";
 import usePersonStore from "../store/usePersonaStore";
 import useChatStore from "../store/useChatStore";
+import useCustomPromptsStore from "../store/useCustomPromptsStore";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
 import ApiSettingsModal from "./ApiSettingsModal";
 import useApiSettingsStore from "../store/useApiSettingsStore";
+import { replacePlaceholders } from "../utils/promptUtils";
 
 export default function ChatPage() {
   const { defaultPersona } = usePersonStore();
   const { defaultCharacter } = useCharacterStore();
   const { jailbreak, role, memory, instruction } = usePromptStore();
   const { api_key } = useChatStore();
+  const { activePrompt } = useCustomPromptsStore();
   const {
     apiKey,
     modelId,
@@ -28,6 +31,24 @@ export default function ChatPage() {
   } = useApiSettingsStore();
 
   const systemPrompt = () => {
+    // If there's an active custom prompt, use it instead of the default
+    if (activePrompt) {
+      // Replace placeholders in the custom prompt
+      const processedPrompt = replacePlaceholders(
+        activePrompt.content,
+        {
+          name: defaultPersona.name,
+          description: defaultPersona.description
+        },
+        {
+          name: defaultCharacter.name,
+          description: defaultCharacter.description,
+          scenario: defaultCharacter.scenario
+        }
+      );
+      return processedPrompt;
+    }
+
     // Helper function to handle empty/undefined values
     const getValue = (value, fallback = "") => {
       return value === undefined || value === null || value.trim() === ""
@@ -88,6 +109,18 @@ export default function ChatPage() {
  ]);
   
   const [isLoading, setIsLoading] = useState(false);
+
+  // Update system message when active prompt changes
+  React.useEffect(() => {
+    setMessages(prevMessages => {
+      const newMessages = [...prevMessages];
+      newMessages[0] = {
+        role: "system",
+        content: systemPrompt(),
+      };
+      return newMessages;
+    });
+  }, [activePrompt]);
 
   async function sendMessage(userChat) {
     // Validate input

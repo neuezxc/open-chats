@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { ArrowUp, CodeXml, Settings2, VenetianMask } from "lucide-react";
 import useApiSettingsStore from "../store/useApiSettingsStore";
+import useCustomPromptsStore from "../store/useCustomPromptsStore";
+import CustomPromptsModal from "./CustomPromptsModal";
 
 export default function ChatInput({ onSendMessage, isLoading }) {
   const [userChat, setUserChat] = useState("");
@@ -57,6 +59,7 @@ export default function ChatInput({ onSendMessage, isLoading }) {
               className="border border-[var(--config-button-border)] rounded-[var(--border-radius-sm)] flex-shrink-0 w-8 h-8 flex items-center justify-center cursor-pointer hover:opacity-100 hover:bg-green-200/20 hover:text-green-100 hover:border-green-500/40 transition-all duration-150"
               aria-label="Configure settings"
               type="button"
+              onClick={() => useCustomPromptsStore.getState().openModal()}
             >
               {/* Configuration icon (slider) */}
               <div className="w-4.5 h-3.5 opacity-50 flex flex-row items-center justify-center">
@@ -88,6 +91,7 @@ export default function ChatInput({ onSendMessage, isLoading }) {
           </div>
         </div>
       </div>
+      <CustomPromptsModal />
     </div>
   );
 }
